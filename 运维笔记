@@ -1,0 +1,771 @@
+php学习手册:
+http://php.freehostingguru.com/
+
+dig使用：
+dig tracert ping:
+dig:用于查询域名；
+tracert：查询本机到该IP所在电脑要经过的路由器以及其IP地址。
+dig 域名 
+ns：查询域名 dns；
+
+linux：
+内存清理：
+查看：free -m 
+执行：echo 1 > /proc/sys/vm/drop_caches
+
+
+php扩展安装：
+安装bcmath：
+/usr/local/php/bin/phpize //指定路径
+./configure  //可查找路径
+./configure --with-php-config=/usr/local/php/bin/php-config //安装
+make
+make install
+vi /usr/local/php/etc/php.ini
+添加：（shift+g）
+extension=/usr/local/php/lib/php/extensions/no-debug-non-zts-20090626/ftp.so
+killall -9 php-fpm
+/usr/local/php/sbin/php-fpm
+
+
+更改mysql密码：
+# mysql -uroot -p
+Enter password: 【输入原来的密码】
+mysql>use mysql;	
+mysql> update user set password=password("123456") where user='root';	
+mysql> flush privileges;
+mysql> exit; 
+重启mysql：
+service mysqld restart
+service mysql restart
+强制修改mysql密码：
+修改文件：my.cnf
+添加：skip-grant-tables 
+修改操作同上
+重启mysql
+
+mysql新建数据库：
+create database 数据库名;
+mysql数据库导入：
+mysql -u root -p 123 <123.sql	
+mysql数据库导出：
+mysqldump -u root -p 123 >123.sql
+源路径强制登陆：
+、、、、/bin/mysql   -uroot -p；
+
+在my.cnf或者my.ini中添加log-queries-not-using-indexes参数，表示记录下没有使用索引的查询。
+log-slow-queries=/data/mysqldata/slow-query.log           
+long_query_time=10                                                               
+log-queries-not-using-indexes     
+
+mysql 修改密码
+UPDATE user SET password=PASSWORD('753951') WHERE user='root'; 
+
+mysql 查看编码  SHOW VARIABLES LIKE 'character_set_%';
+mysql 查看用户  SELECT DISTINCT CONCAT('User: ''',user,'''@''',host,''';') AS query FROM mysql.user;
+MYSQL 错误   
+Table 'XXXX' is marked as crashed and should be repaired
+方法 myisamchk -f \c_member_tj.MYI
+myisamchk -c -r 
+
+mysql自动备份：
+. 将以下脚本拷贝到本地，上传到服务器上，名称叫“autoback.sh”。
+#!/bin/bash
+#-----------------------------------------------#
+#This is a  free GNU GPL version 3.0 or above
+#Copyright (C) 2008 06 05
+#mysql_backup Dedicated copyright by My
+#-----------------------------------------------#
+echo -e [`date +"%Y-%m-%d %H:%M:%S"`] start
+#system time
+time=`date +"%y-%m-%d"`
+#host IP
+host="127.0.0.1"
+#database backup user
+user="root"
+#database password
+passwd="admin"
+#Create a backup directory
+mkdir -p /backup/db/"$time"
+#list database name
+all_database=`/usr/bin/mysql -u$user -p$passwd -Bse 'show databases'`
+#in the table from the database backup
+for i in $all_database
+do
+/usr/bin/mysqldump -u$user -p$passwd $i > /backup/db/"$time"/"$i"_"$time".sql
+done
+echo -e [`date +"%Y-%m-%d %H:%M:%S"`]  end
+exit 0
+脚本中的数据库名和数据库密码以用户想备份的库的信息为准，需要用户修改下。
+2. 运行 crontab -e
+写入以下内容
+30 5 * * * root sh /root/autobackup.sh >/dev/null 2>&1
+保存退出，之后每天早上5：30就会自动备份数据库了。
+1. 确认crontab是否安装：
+执行 crontab 命令如果报 command not found，就表明没有安装
+2. 安装 crontab
+执行 yum install -y vixie-cron
+3. 确认是否安装成功:
+执行 crontab -l
+4. 看是否设置了开机自动启动
+chkconfig --list crond
+5. 启动crontab
+service crond start
+
+linux大数据传输：
+方法一：
+yum install -y rsync
+yum install -y screen
+进入：screen -S ezhttp scp /data/wwwroot/www.sangdekeji.com.zip root@120.77.64.250:/mnt/www/www.sangdekeji.com
+恢复：screen -r ezhttp
+目标服务器安装：yum -y install rsync
+rsync -av -e 'ssh -p 39822' --stats /home/wwwroot/wwwftp  root@60.205.56.52:/root
+方法二：
+scp:
+本地复制到远程：
+scp /home/daisy/full.tar.gz root@172.19.2.75:/home/root 
+远程复制到本地：
+scp root@/172.19.2.75:/home/root/full.tar.gz /home/
+
+
+linux挂载：
+df –h
+fdisk -l
+（可选）执行“fdisk -S 56 /dev/xvdb”命令，对数据盘进行分区；
+根据提示，依次输入“n”，“p”“1”，两次回车，“wq”，分区就开始了，很快就会完成。
+mkfs.ext4 /dev/xvdb”命令对新分区进行格式化
+使用“echo '/dev/xvdb  /data ext4    defaults    0  0' >> /etc/fstab”（不含引号）命令写入新分区信息。
+然后使用“cat /etc/fstab”命令查看，
+使用“mount -a”命令挂载新分区，然后用“df -h”命令查看
+
+自动挂载：
+bash auto_fdisk.sh（http://help.aliyun.com/knowledge_detail/5974183.htm?spm=5176.750001.1863212.1.y1YJg1）
+
+Linux下常用/www/wdlinux/nginx/格式的压缩与解压方法 
+日期：2005-01-20   来源： LinuxByte   作者： Linux爱好者 
+.tar 
+解包： tar xvf FileName.tar 
+打包：tar cvf FileName.tar DirName 
+（注：tar是打包，不是压缩！） 
+--------------------------------------------- 
+.gz 
+解压1：gunzip FileName.gz 
+解压2：gzip -d FileName.gz 
+压缩：gzip FileName 
+.tar.gz 
+解压：tar zxvf FileName.tar.gz 
+压缩：tar zcvf FileName.tar.gz DirName 
+--------------------------------------------- 
+.bz2 
+解压1：bzip2 -d FileName.bz2 
+解压2：bunzip2 FileName.bz2 
+压缩： bzip2 -z FileName 
+.tar.bz2 
+解压：tar jxvf FileName.tar.bz2 
+压缩：tar jcvf FileName.tar.bz2 DirName 
+--------------------------------------------- 
+.bz 
+解压1：bzip2 -d FileName.bz 
+解压2：bunzip2 FileName.bz 
+压缩：未知 
+.tar.bz 
+解压：tar jxvf FileName.tar.bz 
+压缩：未知 
+--------------------------------------------- 
+.Z 
+解压：uncompress FileName.Z 
+压缩：compress FileName 
+.tar.Z 
+解压：tar Zxvf FileName.tar.Z 
+压缩：tar Zcvf FileName.tar.Z DirName 
+--------------------------------------------- 
+.tgz 
+解压：tar zxvf FileName.tgz 
+压缩：未知 
+.tar.tgz  
+解压：tar zxvf FileName.tar.tgz 
+压缩：tar zcvf FileName.tar.tgz FileName 
+--------------------------------------------- 
+.zip 
+解压：unzip FileName.zip 
+压缩：zip FileName.zip DirName 
+--------------------------------------------- 
+.rar 
+解压：rar a FileName.rar 
+压缩：r ar e FileName.rar 
+
+tar.gz:
+压缩：tar -zcvf FileName.tar.gz DirName
+解压：tar zxvf FileName.tar.gz 
+压缩指定文件：
+tar -zcvf apache.tar.gz --exclude=c --exclude=d
+
+fastcgi配置文件：
+php=php5.4
+php:16553=php5.4
+
+[php5.3]
+ExePath=C:\websoft\php\php-5.3\php-cgi.exe
+InstanceMaxRequests=10000
+EnvironmentVars=PHP_FCGI_MAX_REQUESTS:10000
+[php5.2]
+ExePath=C:\websoft\php\php-5.2\php-cgi.exe
+InstanceMaxRequests=10000
+EnvironmentVars=PHP_FCGI_MAX_REQUESTS:10000
+[php5.4]
+ExePath=C:\websoft\php\php-5.4\php-cgi.exe
+InstanceMaxRequests=10000
+EnvironmentVars=PHP_FCGI_MAX_REQUESTS:10000
+
+linux下抓包
+先安装yum install wireshark 
+zb.sh shell脚本
+#!/bin/sh
+tshark -s 512 -i eth1 -n -f 'tcp dst port 80' -R 'http.host and http.request.uri' -T fields -e http.host -e http.request.uri -l | tr -d '\t'
+
+修复数据库表：
+myisamchk -f /usr/local/mysql/var/vipyz/pre_common_syscache.MYI
+（保险使用）mysqlcheck -r /usr/local/mysql/var/vipyz/pre_common_syscache.MYI
+mysqlcheck -o -r -uroot -p -A
+修复数据库：
+mysqlcheck -uroot -p 数据库名
+单个表修复：
+进入mysql: use 数据库；  repair tables '表名'；
+
+
+linux安装ftp：
+yum install -y vsftpd
+默认配置文件位置：/etc/vsftpd/vdftpd.conf里的anonymous_enable=YES设置成NO 
+开机自起：chkconfig --level 35 vsftpd on
+创建ftp：useradd -d /data/www -s /sbin/nologin admin
+设置密码：passwd ftp名
+修改目录权限：
+chown -R ftp.ftp ftp文件（ftpadmin权限所有者 www文件名）
+service vdftpd start
+
+使用free -m查看内存的使用率，如果到达90%以上后，判断程序没有异常，建议升级内存。
+使用dmesg |grep oom 查看是否有相关进程被killed  或者out of  memory 等相关内存溢出的字样，如果有则建议升级内存或优化环境配置。
+使用top命令也可以查看到实时的内存监控如下，可以按字母m 键在进行排序，排序后观察占用内存异常的进程然后再分析。
+
+EZHTTP:
+1、安装screen
+ubuntu/debian系统:
+apt-get install -y screen
+复制代码Centos/redhat系统:
+yum install -y screen
+2、创建screen会话
+命令为:
+screen -S ezhttp
+复制代码执行这条命令后，会类似新建一个新窗口，接着可以在此窗口继续第二步安装。
+3、ssh断开恢复
+如果你已经执行第2步，接着运行了ezhttp安装程序，在安装过程中，突然由于网络原因或者其它原因中断了ssh，你可以重新连接ssh，通过以下命令来恢复之前的窗口：
+screen -r ezhttp
+复制代码二、安装所需工具
+执行ezhttp安装程序，至少需要unzip及wget工具。
+ubuntu/debian系统:
+apt-get install wget unzip
+复制代码
+Centos/redhat系统:
+yum install -y wget unzip
+复制代码三、下载执行EZHTTP
+方法1（推荐，需要安装git）:
+git clone https://github.com/centos-bz/EZHTTP.git
+cd EZHTT
+chmod +x start.sh
+./start.sh
+复制代码以后可以执行git pull同步更新。
+方法2（直接wget下载）:
+wget --no-check-certificate https://github.com/centos-bz/EZHTTP/archive/master.zip?time=$(date +%s) -O EZHTTP.zip
+unzip EZHTTP.zip
+cd EZHTTP-master
+chmod +x start.sh
+./start.sh
+复制代码
+如果下载不了，可以把第一行替换为:
+wget --no-check-certificate http://www.centos.bz/EZHTTP.zip?time=$(date +%s) -O EZHTTP.zip
+复制代码
+
+22虚机问题处理：
+linux：
+重启所有php:
+sh /usr/local/yundns/virtualhost/vh_php_start_all.sh
+
+wdcp面板
+service wdapache 
+start|stop|restart wdcp后台 启动|停止|重起
+service nginxd start|stop|restart nginx服务 启动|停止|重起
+service httpd start|stop|restart httpd服务 启动|停止|重起
+service pureftpd start|stop|restart ftp服务 启动|停止|重起
+service mysqld start|stop|restart mysql服务 启动|停止|重起
+
+wordpress网站打不开：
+kill -s SIGUSR2 `ps axf | grep  FTP账号| grep -v grep | awk '{print $1}'`
+
+phpmyadmin无法打开：
+lsof -i:10000
+kill -9 
+
+/usr/local/php5.4/sbin/php-fpm --fpm-config /usr/local/nginx/conf/php-fpm.conf
+
+
+/usr/local/php5.2/bin/php-cgi --fpm --fpm-config /var/php-mysqfpm/5.2/d549063d0f/php-fpm.conf
+
+
+/usr/local/php5.3/sbin/php-fpm --fpm-config /var/php-fpm/5.3/7652d8dd80/php-fpm.conf
+
+
+/usr/local/php5.2/bin/php-cgi --fpm --fpm-config /var/php-fpm/5.2/guan/php-fpm.conf
+
+/usr/local/php5.4/sbin/php-fpm --fpm-config /usr/local/nginx/conf/php-fpm.conf
+
+/usr/local/php5.4/sbin/php-fpm --fpm-config /var/php-fpm/5.4/07a5099b/php-fpm.conf
+
+kill -s SIGUSR2 `ps axf | grep 510448ba5b | grep -v grep | awk '{print $1}'`
+
+重启单个的php-cgi
+
+
+查看最占内存的进程：
+ps -eo pmem,pid,user,args | sort -r -k1 | less
+
+查看最耗CPU的进程：
+ps aux --sort=-pcpu,-pmem |head -10
+
+22虚机掉了处理：
+检查：ipconfig > 1.txt 
+
+C:\Documents and Settings\Administrator>cd \
+
+C:\>cd usr\local
+
+C:\usr\local>cd VirtualHost
+
+C:\usr\local\VirtualHost>VHBindIP.bat bind 103.47.248.147
+
+session问题：
+linux：/var/php-fpm/.....tmp
+windows: usr/tmp
+
+tomcat配置文件多域名：
+vim service.xml
+<Host name="m.kjzhiyou.com"  debug="0"  appBase=""
+            unpackWARs="true" autoDeploy="true"
+            xmlValidation="false" xmlNamespaceAware="false">
+        <Context path="" docBase="/usr/local/apache-tomcat-6.0.35-shop/webapps/store"></Context>
+        <!-- SingleSignOn valve, share authentication between web applications
+             Documentation at: /docs/config/valve.html -->
+        <!--
+        <Valve className="org.apache.catalina.authenticator.SingleSignOn" />
+        -->
+
+        <!-- Access log processes all example.
+             Documentation at: /docs/config/valve.html -->
+        <!--
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+               prefix="localhost_access_log." suffix=".txt" pattern="common" resolveHosts="false"/>
+        -->
+         <Alias>web.kjzhiyou.com</Alias>
+         <Alias>uu.kjzhiyou.com</Alias>
+         <Alias>web.kjzhiyou.com</Alias>
+      </Host>
+
+tomcat配置环境变量：
+export JAVA_HOME=/usr/local/jdk/jdk1.6.0_38
+export JRE_HOME=/usr/local/jdk/jdk1.6.0_38/jre
+export CLASSPATH=.:$CLASSPATH:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar:$JRE_HOME/lib
+export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH:$HOME/bin
+
+qq无法登录：
+【去官网下载了一个最新版本（curl-7.28.1.tar.gz）的curl，来进行源码编译。
+编译的依赖，openssl和openssl-devel。
+编译方法和其他软件类似，步骤如下：
+cd curl-7.28.
+  ./configure --prefix=/usr/local/curl --with-openssl-dir=/usr/local/openssl --with-openssl
+  make
+  make install
+ ./configure --without-nss --with-ssl && make &&make install
+ echo "/usr/local/lib" >> /etc/ld.so.conf && ldconfig
+ service httpd restart
+
+服务器计划任务：
+基本格式 : 
+*　　*　　*　　*　　*　　command 
+分　 时　 日　月　 周　  命令 
+第1列表示分钟1～59 每分钟用*或者 */1表示 
+第2列表示小时1～23（0表示0点） 
+第3列表示日期1～31 
+第4列表示月份1～12 
+第5列标识号星期0～6（0表示星期天） 
+第6列要运行的命令 
+ crontab -l 显示
+ crontab -e 添加
+crontab定时任务的一些案例 
+30 3 * * * /alidata/server/httpd/bin/apachectl restart
+上面的例子表示每晚的3:30重启apache 
+50 4 1,10,20 * * /alidata/server/httpd/bin/apachectl restart  
+上面的例子表示每周六、周日的13 : 10重启apache。 
+* */1 * * * /alidata/server/httpd/bin/apachectl restart 
+每一小时重启apache 
+* 23-7/1 * * * /alidata/server/httpd/bin/apachectl restart 
+晚上11点到早上7点之间，每隔一小时重启apache 
+
+
+数据库出现mysql.sock文件不存在报错修改密码方式：
+首先导入phpmyadmin 
+进入修改/phpmyadmin/libraries/config.default.php,
+修改参数：$cfg['Servers'][$i]['host'] = 'localhost'; localhost改为127.0.0.1
+登录phpmyadmin修改即可
+
+
+阿里云工具：
+http://help.aliyun.com/knowledge_detail/5975063.html?spm=5176.775974183.2.8.8cxeHd
+http://help.aliyun.com/knowledge_detail/5980349.html?spm=5176.775989620.2.7.Lk8oXp
+
+apache禁止ip访问：
+方法一：在httpd.conf文件最后面，加入以下代码
+　　　　　NameVirtualHost 221.*.*.*
+　　　　　<VirtualHost 221.*.*.*>
+　　　　　ServerName 221.*.*.*
+　　　　　<Location />
+   　　　　 Order Allow,Deny
+    　　　　Deny from all
+　　　　　</Location>
+　　　　　</VirtualHost>　　　　
+　　　　　<VirtualHost 221.*.*.*>
+　　　　　DocumentRoot "c:/web"
+　　　　　ServerName www.webjx.com
+　　　　　</VirtualHost>
+　　　说明：蓝色部分是实现拒绝直接通过221.*.*.*这个IP的任何访问请求，这时如果你用221.*.*.*访问，会提示拒绝访问。红色部分就是允许通过www.webjx.com这个域名访问，主目录指向c:/web（这里假设你的网站的根目录是c:/web）
+　　　方法二：在httpd.conf文件最后面，加入以下代码
+　　　　　NameVirtualHost 221.*.*.*
+　　　　　<VirtualHost 221.*.*.*>
+　　　　　DocumentRoot "c:/test"
+　　　　　ServerName 221.*.*.*
+　　　　　</VirtualHost>　　　　　
+　　　　　<VirtualHost 221.*.*.*>
+　　　　　DocumentRoot "c:/web"
+　　　　　ServerName www.webjx.com
+　　　　　</VirtualHost>　　　　
+　　　　
+　　　说明：蓝色部分是把通过221.*.*.*这个IP直接访问的请求指向c:/test目录下，这可以是个空目录，也可以在里面建一个首页文件，如index.hmtl，首面文件内容可以是一个声明，说明不能通过IP直接访问。红色部分的意思跟方法一是一样的。
+
+
+linux禁ping：
+开启：echo 1 > /proc/sys/net/ipv4/icmp_echo_ignore_all
+关闭：echo 0 > /proc/sys/net/ipv4/icmp_echo_ignore_all
+
+Ubuntu权限提升设置：
+http://help.aliyun.com/knowledge_detail/6500080.html?spm=5176.788314850.3.4.P1bLAl
+
+查找配置文件：
+http://help.aliyun.com/knowledge_detail/5989573.html?spm=5176.7618386.5.27.EVCxUG
+ 
+
+linux修改最大连接数：
+方法一：进入MYSQL安装目录 打开MYSQL配置文件 my.ini 或 my.cnf查找 max_connections=100   修改为 max_connections=1000 服务里重起MYSQL即可。此方法用于Windows下的mysql设置，简单方便。如果是Linux的话，请看下面。
+方法二：MySQL的最大连接数默认是100
+客户端登录：mysql -uroot -p
+设置新的最大连接数为1000：mysql> set GLOBAL max_connections=1000
+显示当前运行的Query：mysql> show processlist
+显示当前状态：mysql> show status
+退出客户端：mysql> exit
+查看当前最大连接数：mysqladmin -uroot -p variables
+或者： show variables like "max_connections";
+这个办法治标不治本，重启服务以后最大连接数还是100。这个方法用于紧急扩充最大连接数用，不是长久之计。
+方法三：以centos 5.4 下面的mysql 5.0.83 rpm版本为例说明：
+找到/usr/bin/mysqld_safe编辑它，找到mysqld启动的那两行，在后面加上参数 ：
+-O max_connections=1000
+用红字特别说明：
+if test -z "$args"
+  then
+    $NOHUP_NICENESS $ledir/$MYSQLD $defaults --basedir=$MY_BASEDIR_VERSION --datadir=$DATADIR $USER_OPTION --pid-file=$pid_file --skip-external-locking -O max_connections=1000 >> $err_log 2>&1
+  else
+    ev al "$NOHUP_NICENESS $ledir/$MYSQLD $defaults --basedir=$MY_BASEDIR_VERSION --datadir=$DATADIR $USER_OPTION --pid-file=$pid_file --skip-external-locking $args -O max_connections=1000 >> $err_log 2>&1"
+  fi
+这段代码很不好找，在下也无法说清楚它具体在哪个位置。不过建议从最后往前找会比较快。
+重启mysql服务：# service mysql restart
+查看当前最大连接数：# /usr/local/mysql/bin/mysqladmin -uroot -p variables
+输入root数据库账号的密码后可看到
+max_connections 1000 即新改动已经生效。
+
+
+<VirtualHost *:80>
+    DocumentRoot "D:\webroot\weixin1688"
+    ServerName www.weixin1688.cn
+    ServerAlias www.weixin1688.cn
+  <Directory "D:\webroot\weixin1688">
+      Options FollowSymLinks ExecCGI
+      AllowOverride All
+      Order allow,deny
+      Allow from all
+      Require all granted
+  </Directory>
+</VirtualHost>
+
+linxu:
+<VirtualHost *:80>
+        DocumentRoot /alidata/www/phpwind
+        ServerName localhost
+        ServerAlias localhost
+        <Directory "/alidata/www/phpwind">
+            Options Indexes FollowSymLinks
+            AllowOverride all
+            Order allow,deny
+            Allow from all
+        </Directory>
+        <IfModule mod_rewrite.c>
+                RewriteEngine On
+                RewriteRule ^(.*)-htm-(.*)$ .php?
+                RewriteRule ^(.*)/simple/([a-z0-9\_]+\.html)$ /simple/index.php?
+        </IfModule>
+        ErrorLog "/alidata/log/httpd/phpwind-error.log"
+        CustomLog "/alidata/log/httpd/phpwind.log" common
+</VirtualHost>
+
+
+禁止通过ip访问：
+https://teddysun.com/180.html
+NameVirtualHost 112.74.213.13
+<virtualhost 112.74.213.13:80>
+ServerName  112.74.213.13
+<Directory />
+Order Allow,Deny
+Deny from all
+</Directory>
+</virtualhost>
+<virtualhost 112.74.213.13:80>
+ServerName www.hhweixin.com
+DocumentRoot  /home/wwwroot/cms
+</virtualhost>	
+
+
+nginx:
+server { 
+listen 80 default; 
+rewrite ^(.*) http://www.xxx.com permanent; 
+} 
+
+网络检测：
+http://ce.cloud.360.cn/
+
+修改权限组与属组：
+chown -R www:www www 
+
+数据同步：
+https://help.aliyun.com/knowledge_detail/6700800.html?spm=5176.7618386.5.1.cfhjSR
+
+
+mysql查询当前连接数和慢sql
+查询当前连接数 
+mysql -uroot -h127.0.0.1 -P3020 -e "show processlist"|wc -l 
+查询慢sql 
+myql -uroot -h127.0.0.1 -P3018 -e "show full processlist">/tmp/1.log 
+
+批量给文件夹权限：
+find /pigcms -type d -exec chmod 755 {} \;
+批量给文件权限：
+find /pigcms -type f -exec chmod 644 {} \;
+
+linux查看cpu核数：
+grep name /proc/cpuinfo
+
+nginx 环境禁止执行php：
+http://www.111cn.net/sys/linux/64115.htm
+
+mysql优化参数配置;
+MySQL是如此的开放，所以可轻松地进一步调整其缺省设置以获得更优的性能及稳定性。需要优化的一些关键变量如下：
+
+改变索引缓冲区长度(key_buffer) 　一般，该变量控制缓冲区的长度在处理索引表（读/写操作）时使用。MySQL使用手册指出该变量可以不断增加以确保索引表的最佳性能，并推荐使用与系统内存25％的大小作为该变量的值。这是MySQL十分重要的配置变量之一，如果你对优化和提高系统性能有兴趣，可以从改变key_buffer_size变量的值开始。
+
+改变表长(read_buffer_size) 　当一个查询不断地扫描某一个表，MySQL会为它分配一段内存缓冲区。read_buffer_size变量控制这一缓冲区的大小。如果你认为连续扫描进行得太慢，可以通过增加该变量值以及内存缓冲区大小提高其性能。
+
+设定打开表的数目的最大值(table_cache) 　该变量控制MySQL在任何时候打开表的最大数目，由此能控制服务器响应输入请求的能力。它跟max_connections变量密切相关，增加table_cache值可使MySQL打开更多的表，就如增加max_connections值可增加连接数一样。当收到大量不同数据库及表的请求时，可以考虑改变这一值的大小。
+
+对缓长查询设定一个时间限制(long_query_time) 　MySQL带有“慢查询日志”，它会自动地记录所有的在一个特定的时间范围内尚未结束的查询。这个日志对于跟踪那些低效率或者行为不端的查询以及寻找优化对象都非常有用。long_query_time变量控制这一最大时间限定，以秒为单位。
+
+
+开启数据库外网访问
+http://www.cnblogs.com/qq78292959/archive/2012/05/17/2505832.html
+ 授权法。例如，你想myuser使用mypassword从任何主机连接到mysql服务器的话。 
+ GRANT ALL PRIVILEGES ON *.* TO 'myuser'@'%' IDENTIFIED BY 'mypassword' WITH GRANT OPTION; 
+ 如果你想允许用户myuser从ip为192.168.1.3的主机连接到mysql服务器，并使用mypassword作为密码 
+ GRANT ALL PRIVILEGES ON *.* TO 'myuser'@'192.168.1.3' IDENTIFIED BY 'mypassword' WITH GRANT OPTION; 
+ 
+ linux上传下载：
+ http://my.oschina.net/Kenyon/blog/53631
+ 
+ 系统的登录session过期限制:
+打开php.ini设置文件,修改三行如下：
+1、session.use_cookies
+把这个的值设置为1，利用cookie来传递sessionid
+2、session.cookie_lifetime
+这个代表SessionID在客户端Cookie储存的时间，默认是0，代表浏览器一关闭SessionID就作废……就是因为这个所以PHP的session不能永久使用！ 那么我们把它设置为一个我们认为
+很大的数字吧，999999999怎么样，可以的！就这样。
+3、session.gc_maxlifetime
+这个是Session数据在服务器端储存的时间，如果超过这个时间，那么Session数据就自动删除！那么我们也把它设置为99999999。
+
+UPDATE `pigcms_users` SET `source_domain`=REPLACE(`source_domain`, 'http://www.jia0482.cn', 'http://nm608.weihubao.com'); 
+把字段，用字段的值，从“http://www.jia0482.cn”换成“http://nm608.weihubao.com”
+
+查看服务器登陆日志：
+/var/log/secure：记录登入系统存取数据日志，例如 pop3, ssh, telnet, ftp 等都会被记录；
+
+linux系统安全查杀：
+https://help.aliyun.com/knowledge_detail/6700255.html
+
+负载均衡入门：
+https://help.aliyun.com/document_detail/27550.html
+https://help.aliyun.com/document_detail/27671.html
+
+
+linux使用htop监控服务器负载：
+https://help.aliyun.com/knowledge_detail/7608752.html
+
+服务器被肉鸡处理思路：
+https://help.aliyun.com/document_detail/31741.html
+
+Linux系统屏蔽某个IP的访问
+https://help.aliyun.com/knowledge_detail/6501987.html
+
+Linux系统磁盘inode满了处理方法
+https://help.aliyun.com/knowledge_detail/6526698.html
+
+替换命令
+
+ra 将当前字符替换为a，当期字符即光标所在字符。
+
+s/old/new/ 用old替换new，替换当前行的第一个匹配
+
+s/old/new/g 用old替换new，替换当前行的所有匹配
+
+%s/old/new/ 用old替换new，替换所有行的第一个匹配
+
+%s/old/new/g 用old替换new，替换整个文件的所有匹配
+
+:10,20 s/^/ /g 在第10行知第20行每行前面加四个空格，用于缩进。
+
+ddp 交换光标所在行和其下紧邻的一行。
+
+
+shell:
+分析日志文件ip访问：
+1,查看apache进程:
+ps aux | grep httpd | grep -v grep | wc -l
+
+2,查看80端口的tcp连接:
+netstat -tan | grep "ESTABLISHED" | grep ":80" | wc -l
+
+3,通过日志查看当天ip连接数，过滤重复:
+cat access_log | grep "19/May/2011" | awk '{print $2}' | sort | uniq -c | sort -nr
+
+4,当天ip连接数最高的ip都在干些什么(原来是蜘蛛):
+cat access_log | grep "19/May/2011:00" | grep "61.135.166.230" | awk '{print $8}' | sort | uniq -c | sort -nr | head -n 10
+
+5,当天访问页面排前10的url:
+cat access_log | grep "19/May/2010:00" | awk '{print $8}' | sort | uniq -c | sort -nr | head -n 10
+
+6,用tcpdump嗅探80端口的访问看看谁最高
+tcpdump -i eth0 -tnn dst port 80 -c 1000 | awk -F"." '{print $1"."$2"."$3"."$4}' | sort | uniq -c | sort -nr
+
+接着从日志里查看该ip在干嘛:
+cat access.log | grep 220.181.38.183| awk '{print $1"/t"$8}' | sort | uniq -c | sort -nr | less
+
+7,查看某一时间段的ip连接数:
+grep "2006:0[7-8]" www20110519.log | awk '{print $2}' | sort | uniq -c| sort -nr | wc -l
+
+8,当前WEB服务器中联接次数最多的20条ip地址:
+netstat -ntu |awk '{print $5}' |sort | uniq -c| sort -n -r | head -n 20
+
+9,查看日志中访问次数最多的前10个IP
+cat access_log |cut -d ' ' -f 1 |sort |uniq -c | sort -nr | awk '{print $0 }' | head -n 10 |less
+
+10,查看日志中出现100次以上的IP
+cat access_log |cut -d ' ' -f 1 |sort |uniq -c | awk '{if ($1 > 5) print $0}'｜sort -nr |less
+
+11,查看最近访问量最高的文件
+cat access_log |tail -10000|awk '{print $7}'|sort|uniq -c|sort -nr|less
+
+12,查看日志中访问超过100次的页面
+cat access_log | cut -d ' ' -f 7 | sort |uniq -c | awk '{if ($1 > 100) print $0}' | less
+
+13,列出传输时间超过 30 秒的文件
+cat access_log|awk '($NF > 30){print $7}'|sort -n|uniq -c|sort -nr|head -20
+
+14,列出最最耗时的页面(超过60秒的)的以及对应页面发生次数
+cat access_log |awk '($NF > 60 && $7~//.php/){print $7}'|sort -n|uniq -c|sort -nr|head -100
+
+
+linux apache自动重启：
+新建文件
+vi /opt/autorshttpd
+写入：
+#!/bin/bash
+L="http://127.0.0.1/"
+curlit()
+{
+curl --connect-timeout 15 --max-time 20 --head --silent "$URL" | grep '200'
+}
+doit()
+{
+if ! curlit; then
+/www/wdlinux/apache/bin/apachectl restart > /dev/null
+fi
+}
+while true; do
+doit > /dev/null
+sleep 10
+done
+保存退出 
+给文件执行权限
+chmod 755 /opt/autorshttpd 
+运行程序
+sh /opt/autorshttpd &  （&：为了关闭服务器不退出）
+
+apache日志分割：
+在apache的配置文件中找到
+ErrorLog logs/error_log
+CustomLog logs/access_log common
+
+Linux系统配置方法：
+
+将其改为 
+ErrorLog "| /usr/local/apache/bin/rotatelogs /home/logs/www/%Y_%m_%d_error_log 86400 480"
+CustomLog "| /usr/local/apache/bin/rotatelogs /home/logs/www/%Y_%m_%d_access_log 86400 480" common
+
+Windows系统下配置方法：
+
+#ErrorLog "|bin/rotatelogs.exe logs/vicp_net_error-%y%m%d.log 86400 480"
+#CustomLog "|bin/rotatelogs.exe logs/vicp_net_access-%y%m%d.log 86400 480" common
+nginx日志分割：
+nginx.conf添加：
+LOGS_PATH="/opt/nginx/logs"
+ARCHIVE_YEAR=$(date -d "yesterday" "+%Y")
+ARCHIVE_MONTH=$(date -d "yesterday" "+%m")
+ARCHIVE_DATE=$(date -d "yesterday" "+%Y%m%d_%H%M%S")
+if [ -r /opt/nginx/nginx.pid ]; then
+    mkdir -p "${LOGS_PATH}/${ARCHIVE_YEAR}/${ARCHIVE_MONTH}"
+    mv "${LOGS_PATH}/access.log" "${LOGS_PATH}/${ARCHIVE_YEAR}/${ARCHIVE_MONTH}/access_${ARCHIVE_DATE}.log"
+    kill -USR1 $(cat "/opt/nginx/nginx.pid")
+    sleep 1
+    gzip "${LOGS_PATH}/${ARCHIVE_YEAR}/${ARCHIVE_MONTH}/access_${ARCHIVE_DATE}.log"
+else
+    echo "Nginx might be down"
+fi
+
+
+
+
+数据库导出excel表：
+方法一
+php教程用mysql的命令和shell
+select * into outfile './bestlovesky.xls' from bestlovesky where 1 order by id desc  limit 0, 50;
+
+方法二 把bestlovesky.xls以文本方式打开，然后另存为，在编码选择ansi编码，保存
+echo "select id,name from bestlovesky where 1 order by id desc limit 0, 50;"| /usr/local/mysql/bin/mysql -h127.0.0.1-uroot -p123456 > /data/bestlovesky.xls
+
+方法三
+mysql   -uroot   -p   -e   "select   *   from   test.table2 "   >   d:a.xsl
+
+
+
+
